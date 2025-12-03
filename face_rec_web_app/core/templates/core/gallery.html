@@ -1,0 +1,172 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% url 'home' %}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+    <h1>Registered Faces Database</h1>
+</div>
+
+<div class="gallery-container">
+    {% if images %}
+    <div class="gallery-grid">
+        {% for img in images %}
+        <div class="gallery-item card">
+            <div class="gallery-img-wrapper">
+                <img src="{{ img.image.url }}" alt="{{ img.person.name }}">
+            </div>
+            <div class="gallery-info">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>{{ img.person.name }}</h3>
+                    <div class="card-actions">
+                        <a href="{% url 'edit_face' img.id %}" class="btn-icon edit" title="Edit">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <form action="{% url 'delete_face' img.id %}" method="POST"
+                            onsubmit="return confirm('Are you sure you want to delete this face?');" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-delete" title="Delete Face">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <span class="date-badge">{{ img.person.created_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-images"></i>
+        <h3>No faces registered yet</h3>
+        <p>Go to the registration page to add new people.</p>
+        <a href="{% url 'register' %}" class="btn-primary" style="display: inline-flex; width: auto;">Register Now</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--primary-color);
+    }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .gallery-item {
+        transition: transform 0.2s;
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-color);
+    }
+
+    .gallery-img-wrapper {
+        width: 100%;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .gallery-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .gallery-item:hover img {
+        transform: scale(1.05);
+    }
+
+    .gallery-info {
+        padding: 1rem;
+    }
+
+    .gallery-info h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+        color: var(--text-color);
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        transition: color 0.2s;
+        color: var(--text-muted);
+    }
+
+    .btn-icon.edit:hover {
+        color: var(--primary-color);
+    }
+
+    .btn-delete {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0.25rem;
+        transition: color 0.2s;
+    }
+
+    .btn-delete:hover {
+        color: #ef4444;
+    }
+
+    .date-badge {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background-color: var(--card-bg);
+        border-radius: 16px;
+        border: 1px dashed var(--border-color);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% url 'home' %}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+    <h1>Live Surveillance</h1>
+</div>
+
+<div class="scan-container">
+    <div class="video-section">
+        <img src="{% url 'video_feed' %}" alt="Live Video Feed" class="video-feed">
+        <div class="scan-overlay">
+            <div class="scan-line"></div>
+        </div>
+    </div>
+
+    <div class="results-section">
+        <h3>Recognized Students</h3>
+        <div class="table-responsive">
+            <table class="table table-striped" id="results-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Age</th>
+                        <th>Department</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateTable() {
+        fetch("{% url 'get_recognized_faces' %}")
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('#results-table tbody');
+                tbody.innerHTML = ''; // Clear existing rows
+
+                data.faces.forEach(face => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${face.name}</td>
+                        <td>${face.class_name || '-'}</td>
+                        <td>${face.age || '-'}</td>
+                        <td>${face.department || '-'}</td>
+                        <td>${face.time || 'Now'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching faces:', error));
+    }
+
+    // Poll every 1 second
+    setInterval(updateTable, 1000);
+</script>
+
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--primary-color);
+    }
+
+    .scan-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    @media (min-width: 992px) {
+        .scan-container {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    .video-section {
+        position: relative;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        background: #000;
+    }
+
+    .video-feed {
+        width: 100%;
+        display: block;
+    }
+
+    .scan-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        background: linear-gradient(to bottom, rgba(0, 255, 0, 0.1), transparent);
+    }
+
+    .scan-line {
+        width: 100%;
+        height: 2px;
+        background: #00ff00;
+        box-shadow: 0 0 10px #00ff00;
+        animation: scan 2s linear infinite;
+    }
+
+    @keyframes scan {
+        0% {
+            transform: translateY(0);
+        }
+
+        100% {
+            transform: translateY(100%);
+        }
+    }
+
+    .results-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        height: fit-content;
+    }
+
+    .table-responsive {
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}

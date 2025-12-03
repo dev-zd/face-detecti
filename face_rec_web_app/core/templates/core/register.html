@@ -1,0 +1,223 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% url 'home' %}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+    <h1>Register New Face</h1>
+</div>
+
+<div class="register-container">
+    <div class="controls-section card">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('upload')"><i class="fa-solid fa-upload"></i>
+                Upload</button>
+            <button class="tab-btn" onclick="switchTab('capture')"><i class="fa-solid fa-camera"></i> Capture</button>
+        </div>
+
+        <!-- Upload Form -->
+        <div id="upload-tab" class="tab-content active">
+            <form method="post" enctype="multipart/form-data" class="upload-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name-upload">Full Name</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" name="name" id="name-upload" required placeholder="e.g. John Doe">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="class-upload">Class</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <input type="text" name="class_name" id="class-upload" placeholder="e.g. 10A">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="age-upload">Age</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-calendar"></i>
+                        <input type="number" name="age" id="age-upload" placeholder="e.g. 15">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="dept-upload">Department</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-building"></i>
+                        <input type="text" name="department" id="dept-upload" placeholder="e.g. Science">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="image">Photo File</label>
+                    <div class="file-drop-area">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span class="file-msg">Choose a file or drag it here</span>
+                        <input type="file" name="image" id="image" accept="image/*" required class="file-input">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-check"></i> Register User
+                </button>
+            </form>
+        </div>
+
+        <!-- Capture Form -->
+        <div id="capture-tab" class="tab-content">
+            <div class="capture-container">
+                <video id="webcam-preview" autoplay playsinline></video>
+                <canvas id="capture-canvas" style="display:none;"></canvas>
+                <img id="captured-image" style="display:none;" alt="Captured">
+            </div>
+
+            <div class="capture-controls">
+                <button type="button" id="start-camera-btn" class="btn-secondary" onclick="startCamera()">
+                    <i class="fa-solid fa-power-off"></i> Start Camera
+                </button>
+                <button type="button" id="capture-btn" class="btn-primary" onclick="capturePhoto()"
+                    style="display:none;">
+                    <i class="fa-solid fa-camera"></i> Take Photo
+                </button>
+                <button type="button" id="retake-btn" class="btn-secondary" onclick="retakePhoto()"
+                    style="display:none;">
+                    <i class="fa-solid fa-rotate-left"></i> Retake
+                </button>
+            </div>
+
+            <form method="post" id="capture-form" style="display:none;">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name-capture">Full Name</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" name="name" id="name-capture" required placeholder="e.g. Jane Doe">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="class-capture">Class</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <input type="text" name="class_name" id="class-capture" placeholder="e.g. 10A">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="age-capture">Age</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-calendar"></i>
+                        <input type="number" name="age" id="age-capture" placeholder="e.g. 15">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="dept-capture">Department</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-building"></i>
+                        <input type="text" name="department" id="dept-capture" placeholder="e.g. Science">
+                    </div>
+                </div>
+                <input type="hidden" name="image_data" id="image-data">
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-check"></i> Register Captured Face
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--primary-color);
+    }
+
+    .register-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+</style>
+
+<script>
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        document.getElementById(tabName + '-tab').classList.add('active');
+        document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+        if (tabName === 'capture') {
+            // Optional: Auto-start camera? Maybe better to let user click start.
+        } else {
+            stopCamera();
+        }
+    }
+
+    let stream = null;
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const video = document.getElementById('webcam-preview');
+            video.srcObject = stream;
+            video.style.display = 'block';
+            document.getElementById('captured-image').style.display = 'none';
+
+            document.getElementById('start-camera-btn').style.display = 'none';
+            document.getElementById('capture-btn').style.display = 'block';
+            document.getElementById('retake-btn').style.display = 'none';
+            document.getElementById('capture-form').style.display = 'none';
+        } catch (err) {
+            console.error("Error accessing webcam:", err);
+            alert("Could not access webcam. Please allow permissions.");
+        }
+    }
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+            document.getElementById('webcam-preview').srcObject = null;
+            document.getElementById('start-camera-btn').style.display = 'block';
+            document.getElementById('capture-btn').style.display = 'none';
+        }
+    }
+
+    function capturePhoto() {
+        const video = document.getElementById('webcam-preview');
+        const canvas = document.getElementById('capture-canvas');
+        const img = document.getElementById('captured-image');
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        const dataURL = canvas.toDataURL('image/jpeg');
+        img.src = dataURL;
+        document.getElementById('image-data').value = dataURL;
+
+        video.style.display = 'none';
+        img.style.display = 'block';
+
+        document.getElementById('capture-btn').style.display = 'none';
+        document.getElementById('retake-btn').style.display = 'block';
+        document.getElementById('capture-form').style.display = 'block';
+    }
+
+    function retakePhoto() {
+        document.getElementById('webcam-preview').style.display = 'block';
+        document.getElementById('captured-image').style.display = 'none';
+        document.getElementById('capture-btn').style.display = 'block';
+        document.getElementById('retake-btn').style.display = 'none';
+        document.getElementById('capture-form').style.display = 'none';
+    }
+</script>
+{% endblock %}
